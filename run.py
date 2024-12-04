@@ -9,6 +9,9 @@ class main:
         
         self.clock = pygame.time.Clock()
         self.gamestate = "game"
+        self.assets = {
+            
+        }
         
     def game_handler(self):
         while True:
@@ -16,7 +19,7 @@ class main:
                 if event.type == pygame.QUIT:
                     pygame.quit()
                     sys.exit()
-            self.display.blit()
+            self.screen.blit(pygame.transform.scale(self.display, self.screen.size()), (0,0))
 
 
 main().game_handler()
