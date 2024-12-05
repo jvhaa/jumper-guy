@@ -1,5 +1,6 @@
 import pygame
 import json
+from fileloader import path_of
 
 NEIGBOUR_OFFSET = [(-1, 0), (-1, -1), (0, -1), (1, -1), (1, 0), (1, 1), (0, 1), (-1, 1), (0, 0), (0,-2)]
 PHYSICS_TILE = {"street"}
@@ -53,12 +54,12 @@ class TileMap:
         return rects
     
     def save(self, path):
-        f = open(path, "w")
+        f = open(path_of(path), "w")
         json.dump({"tilemap": self.tilemap, "tilesize":self.tilesize, "offgrid_tiles":self.offgrid_tiles}, f)
         f.close()
 
     def load(self, path):
-        f = open(path, "r")
+        f = open(path_of(path), "r")
         world = json.load(f)
         f.close()
         self.tilemap = world["tilemap"]
