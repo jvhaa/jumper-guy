@@ -9,3 +9,4 @@ def path_of(path):
     if not os.path.exists(abs_path):
         abs_path = path
     return abs_path
+

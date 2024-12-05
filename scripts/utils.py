@@ -1,6 +1,6 @@
 import os
 import pygame
-from fileloader import path_of
+from scripts.fileloader import path_of
 
 BASE_IMG_LINK = "assets/"
 
