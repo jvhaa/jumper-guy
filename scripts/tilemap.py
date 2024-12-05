@@ -1,9 +1,9 @@
 import pygame
 import json
-from fileloader import path_of
+from scripts.fileloader import path_of
 
 NEIGBOUR_OFFSET = [(-1, 0), (-1, -1), (0, -1), (1, -1), (1, 0), (1, 1), (0, 1), (-1, 1), (0, 0), (0,-2)]
-PHYSICS_TILE = {"street"}
+PHYSICS_TILE = {"colliables"}
 
 class TileMap:
     def __init__(self, game, tilesize = 50):
@@ -30,6 +30,12 @@ class TileMap:
                 if not keep:
                     del self.tilemap[loc]
         return matches
+    
+    def solid_check(self, pos):
+        tile_loc = str(int(pos[0]//self.tilesize)) + ";" + str(int(pos[1]//self.tilesize))
+        if tile_loc in self.tilemap:
+            if self.tilemap[tile_loc]["type"] in PHYSICS_TILE:
+                return self.tilemap[tile_loc]["type"]
 
     def tiles_around(self, pos):
         tiles = []

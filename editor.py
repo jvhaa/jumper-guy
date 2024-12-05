@@ -7,7 +7,7 @@ RENDER_SCALE = 2.0
 class Game:
     def __init__(self):
         pygame.init()
-        pygame.display.set_caption('i hat my fucking life')
+        pygame.display.set_caption('i hate my fucking life')
         self.screen = pygame.display.set_mode((800, 600))
         self.display = pygame.Surface((400, 300))
         self.clock = pygame.time.Clock()
