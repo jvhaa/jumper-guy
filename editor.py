@@ -14,7 +14,7 @@ class Game:
         self.move = [False, False, False, False]
 
         self.assets = {
-
+            "colliables": load_images("colliables")
         }
 
         self.Tilemap = TileMap(self)
@@ -58,7 +58,7 @@ class Game:
                     tile_r = pygame.Rect(tile['pos'][0] - self.scroll[0], tile['pos'][1] - self.scroll[1], tile_img.get_width(), tile_img.get_height())
                     if tile_r.collidepoint(mpos):
                         self.Tilemap.offgrid_tiles.remove(tile)
-            self.display.blit(self.assets["city_background"][0], (100, 100))
+            
 
             self.display.fill((0, 0, 0))
             self.Tilemap.render(self.display, render_scroll)
