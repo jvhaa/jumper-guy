@@ -1,15 +1,16 @@
 import os
 import pygame
+from fileloader import path_of
 
 BASE_IMG_LINK = "assets/"
 
 def load_image(path):
-    img = pygame.image.load(BASE_IMG_LINK + path).convert_alpha()
+    img = pygame.image.load(path_of(BASE_IMG_LINK + path)).convert_alpha()
     return img
 
 def load_images(path):
     images = []
-    arr = os.listdir(BASE_IMG_LINK + path)
+    arr = os.listdir(path_of(BASE_IMG_LINK + path))
     arr = sorted(arr, key=lambda x: int(x.split(".")[0]))
     for img_name in arr:
         images.append((load_image(path + '/' + img_name)))
