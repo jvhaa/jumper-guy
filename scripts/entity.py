@@ -120,8 +120,7 @@ class player(Physics_Entity):
                 self.set_action("idle")
     
     def render(self, surf, scroll=(0, 0)):
-        if self.iframes not in [1, 2, 3, 4,6,8, 10, 13, 16, 20]:
-            super().render(surf, scroll)
+        super().render(surf, scroll)
 
 class enemy(Physics_Entity):
     def __init__(self, game, pos, size):
