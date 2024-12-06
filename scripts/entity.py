@@ -35,7 +35,6 @@ class Physics_Entity:
         if movement[0] < 0:
             self.flip = True
         
-        print(self.size, self.ogsize)
         self.pos[0] += (self.size[0] - self.ogsize[0]) * (-1 if self.flip else 1)
         self.pos[1] -= (self.size[1] - self.ogsize[1])
 
@@ -120,8 +119,8 @@ class player(Physics_Entity):
 
         if not self.wall_slide:
             if self.air_time > 4:
-                pass
-                #self.set_action("jump")
+                self.set_action("jump")
+                self.size = ()
             elif movement[0] != 0:
                 self.set_action("run")
                 self.size = (16, 24)
