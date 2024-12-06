@@ -1,6 +1,7 @@
 import pygame
 import sys
 import random
+import math
 
 from scripts.clouds import Clouds
 from scripts.entity import player, enemy, skeleton_archer
@@ -23,9 +24,9 @@ class main:
             "player/run" : Animation(load_images("player/run"), 1),
             "player/jump" : Animation(load_images("player/jump"), 1),
             "player/wall_slide" : Animation(load_images("player/wall_slide"), 1),
-            "skeleton_archer/idle" : Animation(load_images("player/idle"), 1),
-            "skeleton_archer/run" : Animation(load_images("player/run"), 1),
-            "skeleton_archer/charge" : Animation(load_images("player/wall_slide"), 1),
+            "skeleton_archer/idle" : Animation(load_images("skeleton_archer/idle"), 1),
+            "skeleton_archer/run" : Animation(load_images("skeleton_archer/idle"), 1),
+            "skeleton_archer/charge" : Animation(load_images("skeleton_archer/idle"), 1),
         }
         
         self.clock = pygame.time.Clock()
@@ -96,6 +97,9 @@ class main:
         #self.screen.blit(self.assets["background"], (0,0))
         self.player.update(self.tilemap, (self.move[1]-self.move[0], 0))
         self.player.render(self.display, self.camdiff)
+        for enemy in self.enemies:
+            enemy.update(self.tilemap)
+            enemy.render(self.display, self.camdiff)
         self.tilemap.render(self.display, self.camdiff)
 
         for hitbox in self.hitbox.copy():
@@ -136,7 +140,7 @@ class main:
         for spawner in self.tilemap.extract([("spawners", 0), ("spawners", 1)]):
             if spawner["variant"] == 0:
                 self.player.pos = spawner["pos"]
-            if spawner["variant"] == 0:
+            if spawner["variant"] == 1:
                 self.enemies.append(skeleton_archer(self, spawner["pos"]))
         
 
