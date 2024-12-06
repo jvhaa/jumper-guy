@@ -14,7 +14,8 @@ class Game:
         self.move = [False, False, False, False]
 
         self.assets = {
-            "colliables": load_images("colliables")
+            "colliables": load_images("colliables"),
+            "spawners" : load_images("spawner")
         }
 
         self.Tilemap = TileMap(self)
@@ -37,7 +38,7 @@ class Game:
     
     def run(self):
         while True:
-            if self.tilegroup == 2:
+            if self.tilegroup == 1:
                 self.ongrid = False
             self.scroll[0] += (self.move[1] - self.move[0]) *2
             self.scroll[1] += (self.move[3] - self.move[2]) *2 
