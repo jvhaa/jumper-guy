@@ -1,5 +1,6 @@
 import pygame
 import sys
+import random
 
 from scripts.clouds import Clouds
 from scripts.entity import player, enemy, skeleton_archer
@@ -20,6 +21,7 @@ class main:
             "colliables": load_images("colliables"),
             "player/idle" : Animation(load_images("player/idle"), 1),
             "player/run" : Animation(load_images("player/run"), 1),
+            "player/jump" : Animation(load_images("player/jump"), 1),
             "player/wall_slide" : Animation(load_images("player/wall_slide"), 1),
             "skeleton_archer/idle" : Animation(load_images("player/idle"), 1),
             "skeleton_archer/run" : Animation(load_images("player/run"), 1),
