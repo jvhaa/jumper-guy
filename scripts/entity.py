@@ -34,9 +34,8 @@ class Physics_Entity:
             self.flip = False
         if movement[0] < 0:
             self.flip = True
-        
-        self.pos[0] += (self.size[0] - self.ogsize[0]) * (-1 if self.flip else 1)
-        self.pos[1] -= (self.size[1] - self.ogsize[1])
+        if self.size != self.ogsize:
+            movement = ((self.size[0] - self.ogsize[0]) * (-1 if self.flip else 1), (self.size[1] - self.ogsize[1]))
 
         if self.collisions['down'] or self.collisions['up']:
             self.velocity[1] = 0
@@ -88,7 +87,7 @@ class player(Physics_Entity):
         self.jumps = 3
         self.wall_slide = False
         self.dashing = 0
-        self.hp = 100
+        self.hp = 6
 
     def update(self, tilemap, movement=(0,0)):
         super().update(tilemap, movement)
@@ -126,7 +125,7 @@ class player(Physics_Entity):
                 self.size = (16, 24)
             else:
                 self.anim_offset = (0,0)
-                self.size = (13, 22)
+                self.size = (14, 24)
                 self.set_action("idle")
     
     def render(self, surf, scroll=(0, 0)):
@@ -189,13 +188,13 @@ class enemy(Physics_Entity):
             if not self.attack:
                 self.set_action("charge")
                 self.attack = self.cd + self.charge
-
             self.attack = max(0, self.attack-1)
             if self.attack == self.cd:
                 if self.type == "skeleton_archer":
                     self.arrow()
         else:
             self.attack = 0
+            self.set_action("idle")
         if self.walking and not attack:
             if (no_block_ahead or walled or 0.995 < random.random()) and not detected:
                 self.flip = not self.flip
@@ -204,8 +203,7 @@ class enemy(Physics_Entity):
             self.walking = max(self.walking-1,0)
         elif random.random() < 0.1 and not attack: 
             self.walking = random.randint(30, 120)
-        else:
-            self.attack = 0
+            self.set_action("run")
 
         super().update(tilemap, movement)
 
@@ -215,15 +213,18 @@ class enemy(Physics_Entity):
     
     def arrow(self):
         xdiff = (self.game.player.pos[0]-self.pos[0]+self.game.player.size[0]/2)
-        hitbox = {"pos": (self.pos[0], self.pos[1]), "vel": (xdiff / abs(xdiff), 0), "size": (5,5), "speed" : (xdiff / abs(xdiff), 0), "hploss": 1, "timer": 1000, "stun" : 6, "image" : self.type + "/bullet", "iframes": 20}
+        image = self.game.assets[self.type + "/arrow"]
+        if xdiff < 0:
+            image = pygame.transform.flip(image, True, False)
+        hitbox = {"pos": (self.pos[0], self.pos[1]+10), "vel": (xdiff / abs(xdiff)*5, 0), "size": (28,6), "speed" : (xdiff / abs(xdiff)*5, 0), "hploss": 1, "timer": 1000, "stun" : 6, "image" : image, "iframes": 20}
         self.game.hitbox.append(hitbox)
 
 
 class skeleton_archer(enemy):
-    def __init__(self, game, pos):
+    def __init__(self, game, pos, level):
         super().__init__(game, pos, (24, 12), "skeleton_archer")
-        self.cd = random.randint(20, 100)
+        self.cd = random.randint(0, 60-level)
         self.size = (20, 22)
-        self.attack_range = 100
-        self.charge = 100
+        self.attack_range = 100+level*10
+        self.charge = 100 - level *5
         self.detecting_range = 200

@@ -26,11 +26,13 @@ class main:
             "player/wall_slide" : Animation(load_images("player/wall_slide"), 1),
             "skeleton_archer/idle" : Animation(load_images("skeleton_archer/idle"), 1),
             "skeleton_archer/run" : Animation(load_images("skeleton_archer/idle"), 1),
-            "skeleton_archer/charge" : Animation(load_images("skeleton_archer/idle"), 1),
+            "skeleton_archer/charge" : Animation(load_images("skeleton_archer/charge"), 1),
+            "skeleton_archer/arrow": load_image("skeleton_archer/arrow.png"),
+            "titlescreen": load_image("backgroundstuff/title.png")
         }
         
         self.clock = pygame.time.Clock()
-        self.gamestate = "game"
+        self.gamestate = "title"
         self.tilemap = TileMap(self, 50)
         self.level = 0
         self.clouds = Clouds(self.assets["clouds"])
@@ -42,18 +44,32 @@ class main:
         self.buttons = []
         self.hitbox = []
         self.click = False
+        self.sparks = []
+        self.transiton = False
+        self.trans = 400
 
         self.b()
 
     def b(self):
         if self.gamestate == "title":
-            self.buttons.append(textbox(self, self.display, (50, 100), "play", "game", "ho"))
+            pass
+
+        if self.gamestate[:4] == "game":
+            state, level = self.gamestate.split(" ")
+            self.gamestate = state
+            self.level = int(level)
+            self.load_map(self.level)
 
         self.game_handler()
 
         
     def game_handler(self):
         while True:
+            self.trans = min(400, self.trans+3)
+            if self.transiton == True:
+                self.trans = max(0, self.trans-10)
+            if self.trans == 0:
+                self.transiton = False
             self.click = False
             self.mx, self.my = pygame.mouse.get_pos()
             self.mx //= 2
@@ -83,24 +99,44 @@ class main:
                         self.click = True
             if self.gamestate == "game":
                 self.game()
+            elif self.gamestate == "title":
+                self.title_screen()
             for button in self.buttons:
                 button.update()
             
+            trans_surf = pygame.Surface(self.display.size)
+            pygame.draw.circle(trans_surf, (255, 255, 255), (self.display.get_width()//2, self.display.get_height()//2), self.trans)
+            trans_surf.set_colorkey((255, 255, 255))
+            self.display.blit(trans_surf, (0,0))
+            
             self.screen.blit(pygame.transform.scale(self.display, self.screen.get_size()), (0,0))
             pygame.display.update()
-            
+
+    def title_screen(self):
+        self.display.blit(self.assets["titlescreen"], (0,0))
+        if self.click == True:
+            self.transiton = True
+
+        if self.trans == 0:
+            self.gamestate = "game 0"
+            self.b()
 
     def game(self):
         self.display.fill((0, 0, 0))
         self.camdiff[0] += (self.player.rect().centerx - self.display.get_width()//2 - self.camdiff[0])//30
         self.camdiff[1] += (self.player.rect().centery - self.display.get_height()//2 -  self.camdiff[1])//30
-        #self.screen.blit(self.assets["background"], (0,0))
         self.player.update(self.tilemap, (self.move[1]-self.move[0], 0))
         self.player.render(self.display, self.camdiff)
         for enemy in self.enemies:
             enemy.update(self.tilemap)
             enemy.render(self.display, self.camdiff)
         self.tilemap.render(self.display, self.camdiff)
+
+        for spark in self.sparks.copy():
+            kill = spark.update()
+            spark.render(self.display, self.camdiff)
+            if kill:
+                self.sparks.remove(spark)
 
         for hitbox in self.hitbox.copy():
             self.hitbox[self.hitbox.index(hitbox)]["pos"] = (hitbox["pos"][0] + hitbox["vel"][0], hitbox["pos"][1] + hitbox["vel"][1])
@@ -109,7 +145,7 @@ class main:
             self.hitbox[self.hitbox.index(hitbox)]["timer"] -= 1
             
             if "image" in hitbox:
-                self.display.blit(self.assets[hitbox["image"]], (hitbox["pos"][0]-self.camdiff[0], hitbox["pos"][1]-self.camdiff[1]))
+                self.display.blit(hitbox["image"], (hitbox["pos"][0]-self.camdiff[0], hitbox["pos"][1]-self.camdiff[1]))
             if hitbox["timer"] <= 0: 
                 for enemies in self.enemies:
                     if "id" in hitbox:
@@ -129,6 +165,15 @@ class main:
                         self.sparks.append(Spark([self.player.rect().x, self.player.rect().centery], (random.random()*0.6 - 1)*math.pi, 3))
                     if hitbox["vel"][0] < 0:
                         self.sparks.append(Spark([self.player.rect().x+self.player.rect().width, self.player.rect().centery], (-0.5 + random.random()*0.6)*math.pi, 3))
+            bricks = self.tilemap.physics_rects_around(hitbox["pos"])
+            for brick in bricks:
+                if brick.colliderect(hit_rect) and (hitbox["vel"][0] > 0 and brick.x > hitbox["pos"][0] or hitbox["vel"][0] < 0 and brick.x < hitbox["pos"][0]):
+                    for i in range(4):
+                        if hitbox["vel"][0] > 0:
+                            self.sparks.append(Spark([hit_rect.x, hitbox["pos"][1]], (random.random()*0.6 - 1)*math.pi, 3))
+                        if hitbox["vel"][0] < 0:
+                            self.sparks.append(Spark([hit_rect.x+hit_rect.width, hitbox["pos"][1]], (-0.5 + random.random()*0.6)*math.pi, 3))
+                    self.hitbox.remove(hitbox)
 
     
     def load_map(self, map_id):
@@ -141,7 +186,7 @@ class main:
             if spawner["variant"] == 0:
                 self.player.pos = spawner["pos"]
             if spawner["variant"] == 1:
-                self.enemies.append(skeleton_archer(self, spawner["pos"]))
+                self.enemies.append(skeleton_archer(self, spawner["pos"], self.level))
         
 
 
