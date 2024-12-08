@@ -5,7 +5,7 @@ import math
 
 from scripts.clouds import Clouds
 from scripts.entity import player, enemy, skeleton_archer, purple_guy
-from scripts.utils import load_image, load_images, Animation
+from scripts.utils import load_image, load_images, Animation, load_music
 from scripts.tilemap import TileMap
 from scripts.button import textbox
 from scripts.spark import Spark
@@ -40,12 +40,13 @@ class main:
             "heal" : load_image("items/0.png"),
             "start" : load_images("start"),
             "end" : load_images("end"),
-            "heart" : load_images("heart")
+            "heart" : load_images("heart"),
+            "music" : load_music("audio/")
         }
         
         self.clock = pygame.time.Clock()
         self.gamestate = "title"
-        self.current_song = "assets/audio/uneasy.mp3"
+        self.current_song = self.assets["music"][0]
         self.tilemap = TileMap(self, 50)
         self.level = 0
         self.clouds = Clouds(self.assets["clouds"])
@@ -59,11 +60,11 @@ class main:
         self.sparks = []
         self.music_played = []
         self.music_ingame = [
-            "1.ogg",
-            "2.ogg",
-            "3.ogg",
-            "4.ogg",
-            "5.ogg",
+            self.assets["music"][1],
+            self.assets["music"][2],
+            self.assets["music"][3],
+            self.assets["music"][4],
+            self.assets["music"][5]
         ]
         self.music_change_needed = False
         self.transiton = False
@@ -167,8 +168,8 @@ class main:
     def title_screen(self):
         self.display.blit(self.assets["titlescreen"], (0,0))
 
-        if pygame.mixer.get_busy() == False or self.current_song != "assets/audio/uneasy.mp3":
-            self.current_song = "assets/audio/uneasy.mp3"
+        if pygame.mixer.get_busy() == False or self.current_song != self.assets["music"][0]:
+            self.current_song = self.assets["music"][0]
             pygame.mixer.Channel(0).set_volume(0.25)
             pygame.mixer.Channel(0).play(pygame.mixer.Sound(self.current_song), -1, -1, 1000)
 
@@ -180,7 +181,7 @@ class main:
 
     def control_screen(self):
         self.display.blit(self.assets["controlscreen"], (0,0))
-        self.music_change("Breaking_the_time_barricade.mp3")
+        self.music_change(self.assets["music"][6])
             
         if self.click == True:
             self.transiton = True
@@ -190,7 +191,7 @@ class main:
         
     def menu(self):
         self.display.fill((0,0, 0))
-        self.music_change("unknownplaces.wav")
+        self.music_change(self.assets["music"][7])
         self.music_played = []
         if self.trans == 0:
             self.gamestate = "game 0"
@@ -198,14 +199,14 @@ class main:
     
     def end(self):
         self.display.fill((0,0,0))
-        self.music_change("unknownplaces.wav")
+        self.music_change(self.assets["music"][7])
         self.music_played = []
         if self.trans == 0:
             self.gamestate = "title"
             self.b()
 
     def game(self):
-        if self.current_song[len("assets/audio/"):] not in self.music_ingame:
+        if self.current_song not in self.music_ingame:
             self.music_change(random.choice(self.music_ingame)) 
         
         if self.music_change_needed:
@@ -215,9 +216,10 @@ class main:
             RandomSongShuffleCheck = True
 
             while RandomSongShuffleCheck == True:
-                if "assets/audio/" + RandomSongShuffle != self.current_song and RandomSongShuffle not in self.music_played:
+                if len(self.music_ingame) == len(self.music_played):
+                    self.music_played = []
+                if RandomSongShuffle != self.current_song and RandomSongShuffle not in self.music_played:
                     RandomSongShuffleCheck = False
-
                 else:
                     RandomSongShuffle = random.choice(self.music_ingame)
 
@@ -347,18 +349,18 @@ class main:
                     self.hitbox.remove(hitbox)
 
     def music_change(self, song, skip=False):   
-        if self.current_song != "assets/audio/" + song and skip == False:
+        if self.current_song != song and skip == False:
             if self.counter_music == 0:
                 self.counter_music = self.dt
             pygame.mixer.Channel(0).fadeout(900)
 
             if self.dt > self.counter_music + 1000:
                 self.counter_music = 0
-                self.current_song = "assets/audio/" + song
-                pygame.mixer.Channel(0).play(pygame.mixer.Sound(self.current_song), -1, -1, 1000)
+                self.current_song = song
+                pygame.mixer.Channel(0).play(song, -1, -1, 1000)
         elif skip == True:
-            self.current_song = "assets/audio/" + song
-            pygame.mixer.Channel(0).play(pygame.mixer.Sound(self.current_song), -1, -1, 1000)
+            self.current_song = song
+            pygame.mixer.Channel(0).play(song, -1, -1, 1000)
 
     
     def load_map(self, map_id):

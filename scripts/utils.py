@@ -16,6 +16,18 @@ def load_images(path):
         images.append((load_image(path + '/' + img_name)))
     return images
 
+def load_audio(path):
+    audio = pygame.mixer.Sound(path_of(BASE_IMG_LINK + path))
+    return audio
+
+def load_music(path):
+    music = []
+    arr = os.listdir(path_of(BASE_IMG_LINK + path))
+    arr = sorted(arr, key=lambda x: int(x.split(".")[0]))
+    for music_name in arr:
+        music.append(load_audio(path + '/' + music_name))
+    return music
+
 class Animation:
     def __init__(self, images, img_dur = 5, loop = True):
         self.images = images
