@@ -36,7 +36,7 @@ class Game:
         try:
             self.Tilemap.load("maps/" + str(self.ml) +".json")
         except FileNotFoundError:
-            print('nuh uh')
+            print('damn you, no map found')
     
     def run(self):
         while True:
@@ -77,7 +77,7 @@ class Game:
                     if event.button == 1:
                         self.click = True
                         if not self.ongrid:
-                            print(self.tilegroup, self.tilevariant)
+                            self.Tilemap.offgrid_tiles.append({"type": self.tilelist[self.tilegroup], 'variant': self.tilevariant, "pos": (mpos[0]+self.scroll[0], mpos[1]+self.scroll[1])})
                     if event.button == 3:
                         self.rightclick = True
                     if not self.shift:
@@ -112,6 +112,7 @@ class Game:
                         self.ongrid = not self.ongrid
                     if event.key == pygame.K_o:
                         self.Tilemap.save("maps/" + str(self.ml) + ".json")
+                        print('saved as' + str(self.ml) + '.json')
                 if event.type == pygame.KEYUP:
                     if event.key == pygame.K_a:
                         self.move[0] = False
@@ -126,15 +127,17 @@ class Game:
                     if event.key == pygame.K_LEFT:
                         self.ml = max(0, self.ml-1)
                         try:
+                            print(str(self.ml))
                             self.Tilemap.load("maps/" + str(self.ml) +".json")
                         except FileNotFoundError:
-                            print('nuh uh')
+                            print('your mother sdhould have dropped you, something went wrong')
                     if event.key == pygame.K_RIGHT:
                         self.ml += 1
                         try:
+                            print(str(self.ml))
                             self.Tilemap.load("maps/" + str(self.ml) +".json")
                         except FileNotFoundError:
-                            print('nuh uh')
+                            print('screw you, something went wrong')
             pygame.display.update()
             self.screen.blit(pygame.transform.scale(self.display, self.screen.get_size()), (0, 0))
             self.clock.tick(60)

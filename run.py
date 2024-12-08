@@ -35,6 +35,7 @@ class main:
             "enemy_soldier/attack" : Animation(load_images("enemy_soldier/attack"), 1),
             "skeleton_archer/arrow": load_image("skeleton_archer/arrow.png"),
             "titlescreen": load_image("backgroundstuff/title.png"),
+            "controlscreen": load_image("backgroundstuff/controls.png"),
             "chest" : load_image("items/1.png"),
             "heal" : load_image("items/0.png"),
             "start" : load_images("start"),
@@ -44,6 +45,7 @@ class main:
         
         self.clock = pygame.time.Clock()
         self.gamestate = "title"
+        self.current_song = "assets/audio/uneasy.mp3"
         self.tilemap = TileMap(self, 50)
         self.level = 0
         self.clouds = Clouds(self.assets["clouds"])
@@ -55,14 +57,27 @@ class main:
         self.hitbox = []
         self.click = False
         self.sparks = []
+        self.music_played = []
+        self.music_ingame = [
+            "1.ogg",
+            "2.ogg",
+            "3.ogg",
+            "4.ogg",
+            "5.ogg",
+        ]
+        self.music_change_needed = False
         self.transiton = False
         self.trans = 400
         self.items = []
         self.counter = 0
+        self.counter_music = 0
         self.dt = 0
         self.ran_death_particles = False
-
+        self.transition_done = True
         self.b()
+
+        pygame.mixer.init()
+
 
     def b(self):
         self.buttons = []
@@ -132,6 +147,8 @@ class main:
                 self.title_screen()
             elif self.gamestate == "menu":
                 self.menu()
+            elif self.gamestate == "controls":
+                self.control_screen()
             elif self.gamestate == "end":
                 self.end()
             elif self.gamestate == "death":
@@ -149,37 +166,78 @@ class main:
 
     def title_screen(self):
         self.display.blit(self.assets["titlescreen"], (0,0))
+
+        if pygame.mixer.get_busy() == False or self.current_song != "assets/audio/uneasy.mp3":
+            self.current_song = "assets/audio/uneasy.mp3"
+            pygame.mixer.Channel(0).set_volume(0.25)
+            pygame.mixer.Channel(0).play(pygame.mixer.Sound(self.current_song), -1, -1, 1000)
+
         if self.click == True:
             self.transiton = True
 
+        if self.trans == 0:
+            self.gamestate = "controls"
+
+    def control_screen(self):
+        self.display.blit(self.assets["controlscreen"], (0,0))
+        self.music_change("Breaking_the_time_barricade.mp3")
+            
+        if self.click == True:
+            self.transiton = True
         if self.trans == 0:
             self.gamestate = "menu"
             self.b()
         
     def menu(self):
         self.display.fill((0,0, 0))
+        self.music_change("unknownplaces.wav")
+        self.music_played = []
         if self.trans == 0:
             self.gamestate = "game 0"
             self.b()
     
     def end(self):
         self.display.fill((0,0,0))
+        self.music_change("unknownplaces.wav")
+        self.music_played = []
         if self.trans == 0:
             self.gamestate = "title"
             self.b()
 
-    def death(self):
-        self.display.fill((0,0,0))
-
     def game(self):
-        if self.player.hp == 0: # the code to determin what happens when the player dies
+        if self.current_song[len("assets/audio/"):] not in self.music_ingame:
+            self.music_change(random.choice(self.music_ingame)) 
+        
+        if self.music_change_needed:
+            self.music_change_needed = False
+            RandomSongShuffle = random.choice(self.music_ingame)
+
+            RandomSongShuffleCheck = True
+
+            while RandomSongShuffleCheck == True:
+                if "assets/audio/" + RandomSongShuffle != self.current_song and RandomSongShuffle not in self.music_played:
+                    RandomSongShuffleCheck = False
+
+                else:
+                    RandomSongShuffle = random.choice(self.music_ingame)
+
+            self.music_played.append(RandomSongShuffle)
+            self.music_change(RandomSongShuffle, True)
+
+        
+
+
+        if self.player.pos[1] > 1000: # reset player pos past 1000 blocks down
+            self.player.pos = self.tilemap.get_player_spawn(self.level)
+        
+        if self.player.hp == 0 or self.player.movement_blocked: # the code to determin what happens when the player dies
             if self.counter == 0:
                 self.counter = self.dt # save current time
             
             self.player.movement_blocked = True
             self.player.dead = True
 
-            self.player.set_action("death_1") # lmao fucking dead
+            self.player.set_action("death_1") # lmao dead
 
             if self.ran_death_particles < 100:
                 for i in range(4):
@@ -189,31 +247,44 @@ class main:
                     self.sparks.append(Spark([self.player.rect().x+self.player.rect().width, self.player.rect().centery], (-0.5 + random.random()*0.6)*math.pi, 2, (255, 0, 0)))
             
             #add timer for around 3 seconds
-            if self.dt > (self.counter + 3000):
-                self.player.set_action("death_collapse") # lmao fucking dead
-            if self.dt > (self.counter + 6000):
-                self.transition = True
-                self.gamestate = "title"
-                self.counter = 0
+            if self.dt > (self.counter + 2000):
+                self.player.set_action("death_collapse") # lmao dead
 
-                self.player.hp = 6
-                self.player.velocity = [0, 0]
-                self.player.set_action("idle")
-                self.player.movement_blocked = False
-                self.player.dead = False   
-                self.ran_death_particles = False
+            if self.dt > (self.counter + 4000):
+                if self.transiton == False:
+                    self.display.fill((0,0, 0))
+                    self.transiton = True
+
+                if self.trans == 0:
+                    self.transition_done = False
+                    self.counter = 0
+                    self.player.hp = 6
+                    self.player.velocity = [0, 0]
+                    self.player.set_action("idle")
+                    self.player.movement_blocked = False
+                    self.ran_death_particles = False
             
 
-    
-        if self.trans == 0:
-            self.gamestate = "game " + str(self.level+1)
+        # this code makes me want to blow up
+        if self.trans == 0 :
+            if self.player.dead == True or self.transition_done == False:
+                self.gamestate = "game " + str(self.level)  
+            else: 
+                self.gamestate = "game " + str(self.level+1)
             self.b()
+            
+
+        if self.trans > 1 and self.transition_done == False:
+            self.player.dead = False
+            self.transition_done = True
+
 
 
         self.display.fill((0, 0, 0))
-        for heart in range((self.player.hp +1) // 2):
-            self.display.blit(self.assets["heart"][(self.player.hp - heart*2) > 1], (15 + heart*20, 275)) 
         self.tilemap.render(self.display, self.camdiff)
+        for heart in range((self.player.hp +1) // 2):
+            self.display.blit(self.assets["heart"][(self.player.hp - heart*2) > 1], (15 + heart*20, 275))  
+        #heart should now render on top of the map instead of under
         self.camdiff[0] += (self.player.rect().centerx - self.display.get_width()//2 - self.camdiff[0])//30
         self.camdiff[1] += (self.player.rect().centery - self.display.get_height()//2 -  self.camdiff[1])//30
         
@@ -275,6 +346,20 @@ class main:
                             self.sparks.append(Spark([hit_rect.x+hit_rect.width, hitbox["pos"][1]], (-0.5 + random.random()*0.6)*math.pi, 3))
                     self.hitbox.remove(hitbox)
 
+    def music_change(self, song, skip=False):   
+        if self.current_song != "assets/audio/" + song and skip == False:
+            if self.counter_music == 0:
+                self.counter_music = self.dt
+            pygame.mixer.Channel(0).fadeout(900)
+
+            if self.dt > self.counter_music + 1000:
+                self.counter_music = 0
+                self.current_song = "assets/audio/" + song
+                pygame.mixer.Channel(0).play(pygame.mixer.Sound(self.current_song), -1, -1, 1000)
+        elif skip == True:
+            self.current_song = "assets/audio/" + song
+            pygame.mixer.Channel(0).play(pygame.mixer.Sound(self.current_song), -1, -1, 1000)
+
     
     def load_map(self, map_id):
         e = self.tilemap.load("maps/" + str(map_id) + ".json")
@@ -297,6 +382,5 @@ class main:
             if spawner["variant"] == 2:
                 self.enemies.append(purple_guy(self, spawner["pos"], self.level))
         
-
-
+        self.music_change_needed = True
 main()

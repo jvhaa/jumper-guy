@@ -69,6 +69,18 @@ class TileMap:
         self.tilesize = world["tilesize"]
         self.offgrid_tiles = world["offgrid_tiles"]
 
+    def get_player_spawn(self, map_id):
+        try:
+            f = open(path_of("maps/" + str(map_id) + ".json"), "r")
+        except FileNotFoundError:
+            return "end"
+        world = json.load(f)
+        f.close()
+
+        for loc in world["offgrid_tiles"]:
+            if loc["type"] == "spawners" and loc["variant"] == 0:
+                return loc["pos"]
+
     def render(self, surf, scroll = (0, 0)):
         for x in range(scroll[0]//self.tilesize, (scroll[0] + surf.get_width())//self.tilesize+1):
             for y in range(scroll[1]//self.tilesize, (scroll[1] + surf.get_height())//self.tilesize+1):

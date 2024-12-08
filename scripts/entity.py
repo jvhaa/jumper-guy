@@ -103,7 +103,7 @@ class player(Physics_Entity):
         self.jumps = 3
         self.wall_slide = False
         self.dashing = 0
-        self.hp = 2
+        self.hp = 6
         self.movement_blocked = False
         self.dead = False
 
