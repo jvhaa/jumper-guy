@@ -1,23 +1,20 @@
-from scripts.text import text, textindex
 import pygame
 
 class textbox():
-    def __init__(self, game, surf, coords, images, type):
+    def __init__(self, game, surf, coords, images):
         self.game = game
         self.surf = surf
-        coords = coords
+        self.coords = coords
         self.images = images
-        self.type = type
+        self.rect = pygame.Rect(coords[0], coords[1], images[0].get_width(), images[0].get_height())
 
     def update(self):
         variant = 0
         if self.rect.collidepoint(self.game.mx, self.game.my):
             variant = 1
             if self.game.click == True:
-                self.game.gamestate = self.type
-                if self.type[:4] == "game" and len(self.type) > 4:
-                    self.game.gamestate = "game"
-                    self.game.load_map(int(self.type.split(" ")[1])-1)
-
-                self.game.b()
-        self.surf.blit(self.images[variant])
+                self.game.transiton = True
+        if variant == 0:
+            self.surf.blit(self.images[variant], self.coords)
+        else:
+            self.surf.blit(self.images[variant], (self.coords[0]-2, self.coords[1]-2))

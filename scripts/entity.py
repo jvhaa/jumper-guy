@@ -166,6 +166,7 @@ class enemy(Physics_Entity):
         self.attack = 0
         self.speed = 1
         self.walking = 0
+        self.reset = 0
 
     def update(self, tilemap):
         self.ogsize = self.size
@@ -185,6 +186,7 @@ class enemy(Physics_Entity):
         attack = (abs(player_dist[0]) < self.attack_range) and insight
 
         if attack:
+            self.reset = 120
             if not self.attack:
                 self.set_action("charge")
                 self.attack = self.cd + self.charge
@@ -192,8 +194,13 @@ class enemy(Physics_Entity):
             if self.attack == self.cd:
                 if self.type == "skeleton_archer":
                     self.arrow()
+                if self.type == "enemy_soldier":
+                    self.knife()
         else:
-            self.attack = 0
+            if self.reset <= 0:
+                self.attack = 0
+            else: 
+                self.reset -= 1 
             self.set_action("idle")
         if self.walking and not attack:
             if (no_block_ahead or walled or 0.995 < random.random()) and not detected:
@@ -203,7 +210,7 @@ class enemy(Physics_Entity):
             self.walking = max(self.walking-1,0)
         elif random.random() < 0.1 and not attack: 
             self.walking = random.randint(30, 120)
-            self.set_action("run")
+            self.set_action("idle")
 
         super().update(tilemap, movement)
 
@@ -218,14 +225,28 @@ class enemy(Physics_Entity):
             image = pygame.transform.flip(image, True, False)
         hitbox = {"pos": (self.pos[0], self.pos[1]+10), "vel": (xdiff / abs(xdiff)*5, 0), "size": (28,6), "speed" : (xdiff / abs(xdiff)*5, 0), "hploss": 1, "timer": 1000, "stun" : 6, "image" : image, "iframes": 20}
         self.game.hitbox.append(hitbox)
+    
+    def knife(self):
+        self.set_action('attack')
+        hitbox = {"pos": (self.pos[0] - (10 if self.flip else -10), self.pos[1]+10), "vel": (0, 0), "size": (26,6), "speed" : ((-2 if self.flip else 2), 0), "hploss": 1, "timer": 10, "stun" : 6, "iframes": 20}
+        self.game.hitbox.append(hitbox)
 
 
 class skeleton_archer(enemy):
     def __init__(self, game, pos, level):
-        super().__init__(game, pos, (24, 12), "skeleton_archer")
+        super().__init__(game, pos, (24, 7), "skeleton_archer")
         self.cd = random.randint(0, 60-level)
         self.size = (20, 22)
         self.attack_range = 100+level*10
         self.charge = 100 - level *5
-        self.detecting_range = 200
+        self.detecting_range = 200 + 20*level
         self.speed = 1
+
+class purple_guy(enemy):
+    def __init__(self, game, pos, level):
+        super().__init__(game, pos, (24, 33), "enemy_soldier")
+        self.cd = random.randint(0, 60-level)
+        self.attack_range = 10
+        self.charge = 40 - level *5
+        self.detecting_range = 100 + level*20
+        self.speed = 2

@@ -4,11 +4,12 @@ import random
 import math
 
 from scripts.clouds import Clouds
-from scripts.entity import player, enemy, skeleton_archer
+from scripts.entity import player, enemy, skeleton_archer, purple_guy
 from scripts.utils import load_image, load_images, Animation
 from scripts.tilemap import TileMap
 from scripts.button import textbox
 from scripts.spark import Spark
+from scripts.items import Item
 
 class main:
     def __init__(self):
@@ -26,11 +27,16 @@ class main:
             "player/jump" : Animation(load_images("player/jump"), 1),
             "player/wall_slide" : Animation(load_images("player/wall_slide"), 1),
             "skeleton_archer/idle" : Animation(load_images("skeleton_archer/idle"), 1),
-            "skeleton_archer/run" : Animation(load_images("skeleton_archer/idle"), 1),
             "skeleton_archer/charge" : Animation(load_images("skeleton_archer/charge"), 1),
+            "enemy_soldier/idle" : Animation(load_images("enemy_soldier/idle"), 1),
+            "enemy_soldier/charge" : Animation(load_images("enemy_soldier/charge"), 1),
+            "enemy_soldier/attack" : Animation(load_images("enemy_soldier/attack"), 1),
             "skeleton_archer/arrow": load_image("skeleton_archer/arrow.png"),
             "titlescreen": load_image("backgroundstuff/title.png"),
-
+            "chest" : load_image("items/1.png"),
+            "heal" : load_image("items/0.png"),
+            "start" : load_images("start"),
+            "end" : load_images("end")
         }
         
         self.clock = pygame.time.Clock()
@@ -42,20 +48,20 @@ class main:
         self.enemies = []
         self.camdiff = [0,0]
         self.move = [0, 0]
-        self.load_map("0")
         self.buttons = []
         self.hitbox = []
         self.click = False
         self.sparks = []
         self.transiton = False
         self.trans = 400
+        self.items = []
 
         self.b()
 
     def b(self):
-        if self.gamestate == "title":
-            pass
-
+        self.buttons = []
+        if self.gamestate == "menu":
+            self.buttons.append(textbox(self, self.display, (100, 100), self.assets["start"]))
         if self.gamestate[:4] == "game":
             state, level = self.gamestate.split(" ")
             self.gamestate = state
@@ -103,15 +109,16 @@ class main:
                 self.game()
             elif self.gamestate == "title":
                 self.title_screen()
+            elif self.gamestate == "menu":
+                self.menu()
             for button in self.buttons:
                 button.update()
-            
             trans_surf = pygame.Surface(self.display.size)
             pygame.draw.circle(trans_surf, (255, 255, 255), (self.display.get_width()//2, self.display.get_height()//2), self.trans)
             trans_surf.set_colorkey((255, 255, 255))
             self.display.blit(trans_surf, (0,0))
             
-            self.screen.blit(pygame.transform.scale(self.display, self.screen.get_size()), (0,0))
+            self.screen.blit(pygame.transform.scale(self.display, self.screen.size), (0,0))
             pygame.display.update()
 
     def title_screen(self):
@@ -120,16 +127,32 @@ class main:
             self.transiton = True
 
         if self.trans == 0:
+            self.gamestate = "menu"
+            self.b()
+        
+    def menu(self):
+        self.display.fill((0,0, 0))
+        if self.trans == 0:
             self.gamestate = "game 0"
             self.b()
+    
 
     def game(self):
+        if self.trans == 0:
+            self.gamestate = "game " + str(self.level+1)
+            self.b()
         self.display.fill((0, 0, 0))
         self.tilemap.render(self.display, self.camdiff)
         self.camdiff[0] += (self.player.rect().centerx - self.display.get_width()//2 - self.camdiff[0])//30
         self.camdiff[1] += (self.player.rect().centery - self.display.get_height()//2 -  self.camdiff[1])//30
         self.player.update(self.tilemap, (self.move[1]-self.move[0], 0))
         self.player.render(self.display, self.camdiff)
+        for item in self.items:
+            I_rect = item.update()
+            item.render(self.camdiff)
+            if I_rect.colliderect(self.player.rect()):
+                item.touched()
+                self.items.remove(item)
         for enemy in self.enemies:
             enemy.update(self.tilemap)
             enemy.render(self.display, self.camdiff)
@@ -161,12 +184,12 @@ class main:
                 if abs(hitbox["speed"][1]) > 1:
                     self.player.velocity[1] = hitbox["speed"][1]
                 self.player.iframes = max(self.player.iframes, hitbox["iframes"])
-                self.hitbox.remove(hitbox)
                 for i in range(4):
-                    if hitbox["vel"][0] > 0:
+                    if hitbox["speed"][0] > 0:
                         self.sparks.append(Spark([self.player.rect().x, self.player.rect().centery], (random.random()*0.6 - 1)*math.pi, 3))
-                    if hitbox["vel"][0] < 0:
+                    if hitbox["speed"][0] < 0:
                         self.sparks.append(Spark([self.player.rect().x+self.player.rect().width, self.player.rect().centery], (-0.5 + random.random()*0.6)*math.pi, 3))
+                self.hitbox.remove(hitbox)
             bricks = self.tilemap.physics_rects_around(hitbox["pos"])
             for brick in bricks:
                 if brick.colliderect(hit_rect) and (hitbox["vel"][0] > 0 and brick.x > hitbox["pos"][0] or hitbox["vel"][0] < 0 and brick.x < hitbox["pos"][0]):
@@ -183,12 +206,19 @@ class main:
 
         self.enemies = []
         self.sparks = []
-        
-        for spawner in self.tilemap.extract([("spawners", 0), ("spawners", 1)]):
+        for spawner in self.tilemap.extract([("items", 0), ("items", 1)]):
+            if spawner["variant"] == 0:
+                self.items.append(Item(self, spawner["pos"], "heal", (10, 10)))
+            if spawner["variant"] == 1:
+                self.items.append(Item(self, spawner["pos"], "chest", (20, 20)))
+
+        for spawner in self.tilemap.extract([("spawners", 0), ("spawners", 1), ("spawners", 2)]):
             if spawner["variant"] == 0:
                 self.player.pos = spawner["pos"]
             if spawner["variant"] == 1:
                 self.enemies.append(skeleton_archer(self, spawner["pos"], self.level))
+            if spawner["variant"] == 2:
+                self.enemies.append(purple_guy(self, spawner["pos"], self.level))
         
 
 

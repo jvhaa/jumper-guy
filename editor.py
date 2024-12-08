@@ -1,6 +1,6 @@
 import pygame, sys
 import json
-from scripts.utils import load_images
+from scripts.utils import load_images, load_image
 from scripts.tilemap import TileMap
 RENDER_SCALE = 2.0
 
@@ -17,6 +17,7 @@ class Game:
             "colliables": load_images("colliables"),
             "noncolliables": load_images("noncolliables"),
             "spawners" : load_images("spawner"),
+            "items" : load_images("items")
         }
 
         self.Tilemap = TileMap(self)
@@ -76,7 +77,7 @@ class Game:
                     if event.button == 1:
                         self.click = True
                         if not self.ongrid:
-                            self.Tilemap.offgrid_tiles.append({"type": self.tilelist[self.tilegroup], 'variant': self.tilevariant, "pos": (mpos[0]+self.scroll[0], mpos[1]+self.scroll[1])})
+                            print(self.tilegroup, self.tilevariant)
                     if event.button == 3:
                         self.rightclick = True
                     if not self.shift:
