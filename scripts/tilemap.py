@@ -67,13 +67,13 @@ class TileMap:
         self.offgrid_tiles = world["offgrid_tiles"]
 
     def render(self, surf, scroll = (0, 0)):
-        for tile in self.offgrid_tiles:
-            surf.blit(self.game.assets[tile["type"]][tile["variant"]], (tile['pos'][0]-scroll[0], tile['pos'][1] -scroll[1]))
-
         for x in range(scroll[0]//self.tilesize, (scroll[0] + surf.get_width())//self.tilesize+1):
             for y in range(scroll[1]//self.tilesize, (scroll[1] + surf.get_height())//self.tilesize+1):
                 loc = str(x) + ";" + str(y)
                 if loc in self.tilemap:
                     tile = self.tilemap[loc]
                     surf.blit(self.game.assets[tile["type"]][tile["variant"]], (tile['pos'][0]* self.tilesize-scroll[0], tile['pos'][1] *self.tilesize-scroll[1]))
+        
+        for tile in self.offgrid_tiles:
+            surf.blit(self.game.assets[tile["type"]][tile["variant"]], (tile['pos'][0]-scroll[0], tile['pos'][1] -scroll[1]))
        

@@ -35,7 +35,7 @@ class Physics_Entity:
         if movement[0] < 0:
             self.flip = True
         if self.size != self.ogsize:
-            movement = ((self.size[0] - self.ogsize[0]) * (-1 if self.flip else 1), (self.size[1] - self.ogsize[1]))
+            movement = ((self.size[0] - self.ogsize[0]) * (-1 if self.flip else 1), (self.ogsize[1] - self.size[1]-0.1))
 
         if self.collisions['down'] or self.collisions['up']:
             self.velocity[1] = 0
@@ -170,7 +170,7 @@ class enemy(Physics_Entity):
     def update(self, tilemap):
         self.ogsize = self.size
         movement = (0,0)
-        no_block_ahead = not tilemap.solid_check((self.rect().centerx + (-7 if self.flip else 7), self.pos[1]+50))
+        no_block_ahead = not tilemap.solid_check((self.rect().centerx + (-self.speed if self.flip else self.speed), self.pos[1]+50))
         player_dist = (self.game.player.pos[0] - self.pos[0], self.game.player.pos[1]-self.pos[1])
         walled = self.collisions["left"] or self.collisions["right"]
         insight = ((self.flip and player_dist[0] < 0) or (not self.flip and player_dist[0] > 0)) and abs(player_dist[1]) < 40
@@ -199,7 +199,7 @@ class enemy(Physics_Entity):
             if (no_block_ahead or walled or 0.995 < random.random()) and not detected:
                 self.flip = not self.flip
             elif self.velocity[0] == 0:
-                movement = (movement[0]-1 if self.flip else movement[0]+1,movement[1])
+                movement = (movement[0]-self.speed if self.flip else movement[0]+self.speed,movement[1])
             self.walking = max(self.walking-1,0)
         elif random.random() < 0.1 and not attack: 
             self.walking = random.randint(30, 120)
@@ -228,3 +228,4 @@ class skeleton_archer(enemy):
         self.attack_range = 100+level*10
         self.charge = 100 - level *5
         self.detecting_range = 200
+        self.speed = 1

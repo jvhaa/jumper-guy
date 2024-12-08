@@ -20,6 +20,7 @@ class main:
             "alphabet": load_images("textsystem"),
             "clouds" : load_images("clouds"),
             "colliables": load_images("colliables"),
+            "noncolliables" : load_images("noncolliables"),
             "player/idle" : Animation(load_images("player/idle"), 1),
             "player/run" : Animation(load_images("player/run"), 1),
             "player/jump" : Animation(load_images("player/jump"), 1),
@@ -28,7 +29,8 @@ class main:
             "skeleton_archer/run" : Animation(load_images("skeleton_archer/idle"), 1),
             "skeleton_archer/charge" : Animation(load_images("skeleton_archer/charge"), 1),
             "skeleton_archer/arrow": load_image("skeleton_archer/arrow.png"),
-            "titlescreen": load_image("backgroundstuff/title.png")
+            "titlescreen": load_image("backgroundstuff/title.png"),
+
         }
         
         self.clock = pygame.time.Clock()
@@ -123,6 +125,7 @@ class main:
 
     def game(self):
         self.display.fill((0, 0, 0))
+        self.tilemap.render(self.display, self.camdiff)
         self.camdiff[0] += (self.player.rect().centerx - self.display.get_width()//2 - self.camdiff[0])//30
         self.camdiff[1] += (self.player.rect().centery - self.display.get_height()//2 -  self.camdiff[1])//30
         self.player.update(self.tilemap, (self.move[1]-self.move[0], 0))
@@ -130,7 +133,6 @@ class main:
         for enemy in self.enemies:
             enemy.update(self.tilemap)
             enemy.render(self.display, self.camdiff)
-        self.tilemap.render(self.display, self.camdiff)
 
         for spark in self.sparks.copy():
             kill = spark.update()
