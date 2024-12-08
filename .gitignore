@@ -3,5 +3,8 @@
 /lib/*
 /env/
 
+/build/
+/dist/
+
 
 __pycache__/
