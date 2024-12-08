@@ -32,6 +32,8 @@ class Item:
     def touched(self):
         if self.type == "heal":
             self.game.player.hp = min(self.game.player.hp+1, 6)
+
         if self.type == "chest":
             self.game.transiton = True
+
         

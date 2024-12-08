@@ -26,6 +26,8 @@ class main:
             "player/run" : Animation(load_images("player/run"), 1),
             "player/jump" : Animation(load_images("player/jump"), 1),
             "player/wall_slide" : Animation(load_images("player/wall_slide"), 1),
+            "player/death_1" : Animation(load_images("player/death_1"), 1),
+            "player/death_collapse" : Animation(load_images("player/death_collapse"), 1),
             "skeleton_archer/idle" : Animation(load_images("skeleton_archer/idle"), 1),
             "skeleton_archer/charge" : Animation(load_images("skeleton_archer/charge"), 1),
             "enemy_soldier/idle" : Animation(load_images("enemy_soldier/idle"), 1),
@@ -56,6 +58,9 @@ class main:
         self.transiton = False
         self.trans = 400
         self.items = []
+        self.counter = 0
+        self.dt = 0
+        self.ran_death_particles = False
 
         self.b()
 
@@ -63,11 +68,13 @@ class main:
         self.buttons = []
         if self.gamestate == "menu":
             self.buttons.append(textbox(self, self.display, (100, 100), self.assets["start"]))
+
         if self.gamestate[:4] == "game":
             state, level = self.gamestate.split(" ")
             self.gamestate = state
             self.level = int(level)
             self.load_map(self.level)
+
         if self.gamestate == "end":
             self.buttons.append(textbox(self, self.display, (100, 100), self.assets["end"]))
 
@@ -77,21 +84,31 @@ class main:
     def game_handler(self):
         while True:
             self.trans = min(400, self.trans+3)
+
             if self.transiton == True:
                 self.trans = max(0, self.trans-10)
+
             if self.trans == 0:
                 self.transiton = False
+
             self.click = False
             self.mx, self.my = pygame.mouse.get_pos()
             self.mx //= 2
             self.my //= 2
             self.clock.tick(60)
+
+            #delta time cuz i need animations
+            if self.dt > 1000000:
+                self.dt = 0 
+            else:
+                self.dt = self.dt + self.clock.get_time()
+
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     pygame.quit()
                     sys.exit()
                 
-                if event.type == pygame.KEYDOWN and self.gamestate == "game":
+                if event.type == pygame.KEYDOWN and self.gamestate == "game" and not self.player.movement_blocked:
                     if event.key == pygame.K_a:
                         self.move[0] = True
                     if event.key == pygame.K_d:
@@ -108,6 +125,7 @@ class main:
                 if event.type == pygame.MOUSEBUTTONUP:
                     if event.button == 1:
                         self.click = True
+
             if self.gamestate == "game":
                 self.game()
             elif self.gamestate == "title":
@@ -116,6 +134,9 @@ class main:
                 self.menu()
             elif self.gamestate == "end":
                 self.end()
+            elif self.gamestate == "death":
+                self.death()
+
             for button in self.buttons:
                 button.update()
             trans_surf = pygame.Surface(self.display.size)
@@ -147,26 +168,66 @@ class main:
             self.gamestate = "title"
             self.b()
 
+    def death(self):
+        self.display.fill((0,0,0))
+
     def game(self):
         if self.player.hp == 0: # the code to determin what happens when the player dies
-            self.gamestate = "title"
+            if self.counter == 0:
+                self.counter = self.dt # save current time
+            
+            self.player.movement_blocked = True
+            self.player.dead = True
+
+            self.player.set_action("death_1") # lmao fucking dead
+
+            if self.ran_death_particles < 100:
+                for i in range(4):
+                    self.ran_death_particles += 1
+                    self.player.velocity = [0, 0] # stop moving the player nerd
+                    self.sparks.append(Spark([self.player.rect().x, self.player.rect().centery], (random.random()*0.6 - 1)*math.pi, 2, (255, 0, 0)))
+                    self.sparks.append(Spark([self.player.rect().x+self.player.rect().width, self.player.rect().centery], (-0.5 + random.random()*0.6)*math.pi, 2, (255, 0, 0)))
+            
+            #add timer for around 3 seconds
+            if self.dt > (self.counter + 3000):
+                self.player.set_action("death_collapse") # lmao fucking dead
+            if self.dt > (self.counter + 6000):
+                self.transition = True
+                self.gamestate = "title"
+                self.counter = 0
+
+                self.player.hp = 6
+                self.player.velocity = [0, 0]
+                self.player.set_action("idle")
+                self.player.movement_blocked = False
+                self.player.dead = False   
+                self.ran_death_particles = False
+            
+
+    
         if self.trans == 0:
             self.gamestate = "game " + str(self.level+1)
             self.b()
+
+
         self.display.fill((0, 0, 0))
         for heart in range((self.player.hp +1) // 2):
             self.display.blit(self.assets["heart"][(self.player.hp - heart*2) > 1], (15 + heart*20, 275)) 
         self.tilemap.render(self.display, self.camdiff)
         self.camdiff[0] += (self.player.rect().centerx - self.display.get_width()//2 - self.camdiff[0])//30
         self.camdiff[1] += (self.player.rect().centery - self.display.get_height()//2 -  self.camdiff[1])//30
+        
         self.player.update(self.tilemap, (self.move[1]-self.move[0], 0))
+
         self.player.render(self.display, self.camdiff)
+
         for item in self.items:
             I_rect = item.update()
             item.render(self.camdiff)
             if I_rect.colliderect(self.player.rect()):
                 item.touched()
                 self.items.remove(item)
+
         for enemy in self.enemies:
             enemy.update(self.tilemap)
             enemy.render(self.display, self.camdiff)
