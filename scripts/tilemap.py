@@ -59,7 +59,10 @@ class TileMap:
         f.close()
 
     def load(self, path):
-        f = open(path_of(path), "r")
+        try:
+            f = open(path_of(path), "r")
+        except FileNotFoundError:
+            return "end"
         world = json.load(f)
         f.close()
         self.tilemap = world["tilemap"]

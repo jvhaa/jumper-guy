@@ -1,7 +1,7 @@
 import pygame
 
 class Item:
-    def __init__(self, game, coords, type, size):
+    def __init__(self, game, coords, type, size, speed):
         self.game = game
         self.coords = coords
         self.type = type
@@ -11,12 +11,13 @@ class Item:
         self.lim2 = self.coords[1]
         self.surf = game.display
         self.size = size
+        self.speed = speed
     
     def update(self):
         if self.dir == "up":
-            self.coords[1] += 0.5
+            self.coords[1] += self.speed
         else:
-            self.coords[1] -= 0.5
+            self.coords[1] -= self.speed
         
         if self.coords[1] > self.lim2:
             self.dir = "down"

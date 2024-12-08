@@ -36,7 +36,8 @@ class main:
             "chest" : load_image("items/1.png"),
             "heal" : load_image("items/0.png"),
             "start" : load_images("start"),
-            "end" : load_images("end")
+            "end" : load_images("end"),
+            "heart" : load_images("heart")
         }
         
         self.clock = pygame.time.Clock()
@@ -67,6 +68,8 @@ class main:
             self.gamestate = state
             self.level = int(level)
             self.load_map(self.level)
+        if self.gamestate == "end":
+            self.buttons.append(textbox(self, self.display, (100, 100), self.assets["end"]))
 
         self.game_handler()
 
@@ -111,6 +114,8 @@ class main:
                 self.title_screen()
             elif self.gamestate == "menu":
                 self.menu()
+            elif self.gamestate == "end":
+                self.end()
             for button in self.buttons:
                 button.update()
             trans_surf = pygame.Surface(self.display.size)
@@ -136,12 +141,21 @@ class main:
             self.gamestate = "game 0"
             self.b()
     
+    def end(self):
+        self.display.fill((0,0,0))
+        if self.trans == 0:
+            self.gamestate = "title"
+            self.b()
 
     def game(self):
+        if self.player.hp == 0: # the code to determin what happens when the player dies
+            self.gamestate = "title"
         if self.trans == 0:
             self.gamestate = "game " + str(self.level+1)
             self.b()
         self.display.fill((0, 0, 0))
+        for heart in range((self.player.hp +1) // 2):
+            self.display.blit(self.assets["heart"][(self.player.hp - heart*2) > 1], (15 + heart*20, 275)) 
         self.tilemap.render(self.display, self.camdiff)
         self.camdiff[0] += (self.player.rect().centerx - self.display.get_width()//2 - self.camdiff[0])//30
         self.camdiff[1] += (self.player.rect().centery - self.display.get_height()//2 -  self.camdiff[1])//30
@@ -202,15 +216,17 @@ class main:
 
     
     def load_map(self, map_id):
-        self.tilemap.load("maps/" + str(map_id) + ".json")
-
+        e = self.tilemap.load("maps/" + str(map_id) + ".json")
+        if e == "end":
+            self.gamestate ="end"
+            return
         self.enemies = []
         self.sparks = []
         for spawner in self.tilemap.extract([("items", 0), ("items", 1)]):
             if spawner["variant"] == 0:
-                self.items.append(Item(self, spawner["pos"], "heal", (10, 10)))
+                self.items.append(Item(self, spawner["pos"], "heal", (10, 10), 0.25))
             if spawner["variant"] == 1:
-                self.items.append(Item(self, spawner["pos"], "chest", (20, 20)))
+                self.items.append(Item(self, spawner["pos"], "chest", (20, 20), 0))
 
         for spawner in self.tilemap.extract([("spawners", 0), ("spawners", 1), ("spawners", 2)]):
             if spawner["variant"] == 0:
