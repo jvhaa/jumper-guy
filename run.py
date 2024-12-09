@@ -233,7 +233,8 @@ class main:
 
 
         if self.player.pos[1] > 1000: # reset player pos past 1000 blocks down
-            self.player.pos = self.tilemap.get_player_spawn(self.level)
+            #self.player.pos = self.tilemap.get_player_spawn(self.level)
+            self.player.hp = 0
         
         if self.player.hp == 0 or self.player.movement_blocked: # the code to determin what happens when the player dies
             if self.counter == 0:
