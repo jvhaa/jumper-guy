@@ -42,8 +42,8 @@ class Game:
         while True:
             if self.tilegroup == 2:
                 self.ongrid = False
-            self.scroll[0] += (self.move[1] - self.move[0]) *2
-            self.scroll[1] += (self.move[3] - self.move[2]) *2 
+            self.scroll[0] += (self.move[1] - self.move[0]) *4
+            self.scroll[1] += (self.move[3] - self.move[2]) *4
             render_scroll = (int(self.scroll[0]), int(self.scroll[1]))
             current_tile = self.assets[self.tilelist[self.tilegroup]][self.tilevariant].copy()
             current_tile.set_alpha(100)

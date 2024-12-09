@@ -311,7 +311,7 @@ class purple_guy(enemy):
     def __init__(self, game, pos, level):
         super().__init__(game, pos, (24, 33), "enemy_soldier")
         self.cd = random.randint(0, 60 - level)
-        self.attack_range = 10
+        self.attack_range = 15
         self.charge = 40 - level * 5
         self.detecting_range = 100 + level * 20
         self.speed = 2

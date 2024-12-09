@@ -41,14 +41,15 @@ class main:
             "start" : load_images("start"),
             "end" : load_images("end"),
             "heart" : load_images("heart"),
-            "music" : load_music("audio/")
+            "music" : load_music("audio/"), 
+            "vig": load_image("effects/vig.png")
         }
         
         self.clock = pygame.time.Clock()
         self.gamestate = "title"
         self.current_song = self.assets["music"][0]
         self.tilemap = TileMap(self, 50)
-        self.level = 0
+        self.level = 4
         self.clouds = Clouds(self.assets["clouds"])
         self.player = player(self, (0, 0), (12, 24))
         self.enemies = []
@@ -75,9 +76,9 @@ class main:
         self.dt = 0
         self.ran_death_particles = False
         self.transition_done = True
-        self.b()
-
+        pygame.display.set_caption("Dundun master")
         pygame.mixer.init()
+        self.b()
 
 
     def b(self):
@@ -114,8 +115,10 @@ class main:
             self.clock.tick(60)
 
             #delta time cuz i need animations
-            if self.dt > 1000000:
+            if self.dt > 10000000:
                 self.dt = 0 
+                self.counter = 0
+                self.counter_music = 0
             else:
                 self.dt = self.dt + self.clock.get_time()
 
@@ -194,7 +197,7 @@ class main:
         self.music_change(self.assets["music"][7])
         self.music_played = []
         if self.trans == 0:
-            self.gamestate = "game 0"
+            self.gamestate = "game " + str(self.level)
             self.b()
     
     def end(self):
@@ -230,9 +233,11 @@ class main:
 
 
         if self.player.pos[1] > 1000: # reset player pos past 1000 blocks down
-            self.player.pos = self.tilemap.get_player_spawn(self.level)
+            #self.player.pos = self.tilemap.get_player_spawn(self.level)
+            self.player.hp = 0
         
         if self.player.hp == 0 or self.player.movement_blocked: # the code to determin what happens when the player dies
+            self.level = 0
             if self.counter == 0:
                 self.counter = self.dt # save current time
             
@@ -284,8 +289,6 @@ class main:
 
         self.display.fill((0, 0, 0))
         self.tilemap.render(self.display, self.camdiff)
-        for heart in range((self.player.hp +1) // 2):
-            self.display.blit(self.assets["heart"][(self.player.hp - heart*2) > 1], (15 + heart*20, 275))  
         #heart should now render on top of the map instead of under
         self.camdiff[0] += (self.player.rect().centerx - self.display.get_width()//2 - self.camdiff[0])//30
         self.camdiff[1] += (self.player.rect().centery - self.display.get_height()//2 -  self.camdiff[1])//30
@@ -314,7 +317,6 @@ class main:
         for hitbox in self.hitbox.copy():
             self.hitbox[self.hitbox.index(hitbox)]["pos"] = (hitbox["pos"][0] + hitbox["vel"][0], hitbox["pos"][1] + hitbox["vel"][1])
             hit_rect = pygame.Rect(hitbox["pos"][0], hitbox["pos"][1], hitbox["size"][0], hitbox["size"][1])
-            pygame.draw.rect(self.display, (255, 0, 0), pygame.Rect(hitbox["pos"][0]-self.camdiff[0], hitbox["pos"][1]-self.camdiff[1], hitbox["size"][0], hitbox["size"][1]))
             self.hitbox[self.hitbox.index(hitbox)]["timer"] -= 1
             
             if "image" in hitbox:
@@ -338,6 +340,7 @@ class main:
                     if hitbox["speed"][0] < 0:
                         self.sparks.append(Spark([self.player.rect().x+self.player.rect().width, self.player.rect().centery], (-0.5 + random.random()*0.6)*math.pi, 3))
                 self.hitbox.remove(hitbox)
+                continue
             bricks = self.tilemap.physics_rects_around(hitbox["pos"])
             for brick in bricks:
                 if brick.colliderect(hit_rect) and (hitbox["vel"][0] > 0 and brick.x > hitbox["pos"][0] or hitbox["vel"][0] < 0 and brick.x < hitbox["pos"][0]):
@@ -347,6 +350,9 @@ class main:
                         if hitbox["vel"][0] < 0:
                             self.sparks.append(Spark([hit_rect.x+hit_rect.width, hitbox["pos"][1]], (-0.5 + random.random()*0.6)*math.pi, 3))
                     self.hitbox.remove(hitbox)
+        self.display.blit(self.assets["vig"], (0,0))
+        for heart in range((self.player.hp +1) // 2):
+            self.display.blit(self.assets["heart"][(self.player.hp - heart*2) > 1], (15 + heart*20, 275))  
 
     def music_change(self, song, skip=False):   
         if self.current_song != song and skip == False:
@@ -370,6 +376,7 @@ class main:
             return
         self.enemies = []
         self.sparks = []
+        self.items = []
         for spawner in self.tilemap.extract([("items", 0), ("items", 1)]):
             if spawner["variant"] == 0:
                 self.items.append(Item(self, spawner["pos"], "heal", (10, 10), 0.25))
