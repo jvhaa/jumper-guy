@@ -340,6 +340,7 @@ class main:
                     if hitbox["speed"][0] < 0:
                         self.sparks.append(Spark([self.player.rect().x+self.player.rect().width, self.player.rect().centery], (-0.5 + random.random()*0.6)*math.pi, 3))
                 self.hitbox.remove(hitbox)
+                continueß
             bricks = self.tilemap.physics_rects_around(hitbox["pos"])
             for brick in bricks:
                 if brick.colliderect(hit_rect) and (hitbox["vel"][0] > 0 and brick.x > hitbox["pos"][0] or hitbox["vel"][0] < 0 and brick.x < hitbox["pos"][0]):
