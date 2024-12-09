@@ -372,6 +372,7 @@ class main:
             return
         self.enemies = []
         self.sparks = []
+        self.items = []
         for spawner in self.tilemap.extract([("items", 0), ("items", 1)]):
             if spawner["variant"] == 0:
                 self.items.append(Item(self, spawner["pos"], "heal", (10, 10), 0.25))
