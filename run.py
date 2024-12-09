@@ -41,7 +41,8 @@ class main:
             "start" : load_images("start"),
             "end" : load_images("end"),
             "heart" : load_images("heart"),
-            "music" : load_music("audio/")
+            "music" : load_music("audio/"), 
+            "vig": load_image("effects/vig.png")
         }
         
         self.clock = pygame.time.Clock()
@@ -75,9 +76,9 @@ class main:
         self.dt = 0
         self.ran_death_particles = False
         self.transition_done = True
-        self.b()
-
+        pygame.display.set_caption("Dundun master")
         pygame.mixer.init()
+        self.b()
 
 
     def b(self):
@@ -284,8 +285,6 @@ class main:
 
         self.display.fill((0, 0, 0))
         self.tilemap.render(self.display, self.camdiff)
-        for heart in range((self.player.hp +1) // 2):
-            self.display.blit(self.assets["heart"][(self.player.hp - heart*2) > 1], (15 + heart*20, 275))  
         #heart should now render on top of the map instead of under
         self.camdiff[0] += (self.player.rect().centerx - self.display.get_width()//2 - self.camdiff[0])//30
         self.camdiff[1] += (self.player.rect().centery - self.display.get_height()//2 -  self.camdiff[1])//30
@@ -347,6 +346,9 @@ class main:
                         if hitbox["vel"][0] < 0:
                             self.sparks.append(Spark([hit_rect.x+hit_rect.width, hitbox["pos"][1]], (-0.5 + random.random()*0.6)*math.pi, 3))
                     self.hitbox.remove(hitbox)
+        self.display.blit(self.assets["vig"], (0,0))
+        for heart in range((self.player.hp +1) // 2):
+            self.display.blit(self.assets["heart"][(self.player.hp - heart*2) > 1], (15 + heart*20, 275))  
 
     def music_change(self, song, skip=False):   
         if self.current_song != song and skip == False:
