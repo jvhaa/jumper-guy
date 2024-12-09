@@ -22,7 +22,7 @@ exe = EXE(
     a.binaries,
     a.datas,
     [],
-    name='run',
+    name='dundun master',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
@@ -37,6 +37,7 @@ exe = EXE(
     entitlements_file=None,
 )
 
+# apple shi
 app = BUNDLE(
     exe,
     name='dundun master.app',
