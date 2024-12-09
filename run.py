@@ -49,7 +49,7 @@ class main:
         self.gamestate = "title"
         self.current_song = self.assets["music"][0]
         self.tilemap = TileMap(self, 50)
-        self.level = 0
+        self.level = 4
         self.clouds = Clouds(self.assets["clouds"])
         self.player = player(self, (0, 0), (12, 24))
         self.enemies = []
@@ -197,7 +197,7 @@ class main:
         self.music_change(self.assets["music"][7])
         self.music_played = []
         if self.trans == 0:
-            self.gamestate = "game 0"
+            self.gamestate = "game " + str(self.level)
             self.b()
     
     def end(self):
@@ -237,6 +237,7 @@ class main:
             self.player.hp = 0
         
         if self.player.hp == 0 or self.player.movement_blocked: # the code to determin what happens when the player dies
+            self.level = 0
             if self.counter == 0:
                 self.counter = self.dt # save current time
             
@@ -316,7 +317,6 @@ class main:
         for hitbox in self.hitbox.copy():
             self.hitbox[self.hitbox.index(hitbox)]["pos"] = (hitbox["pos"][0] + hitbox["vel"][0], hitbox["pos"][1] + hitbox["vel"][1])
             hit_rect = pygame.Rect(hitbox["pos"][0], hitbox["pos"][1], hitbox["size"][0], hitbox["size"][1])
-            pygame.draw.rect(self.display, (255, 0, 0), pygame.Rect(hitbox["pos"][0]-self.camdiff[0], hitbox["pos"][1]-self.camdiff[1], hitbox["size"][0], hitbox["size"][1]))
             self.hitbox[self.hitbox.index(hitbox)]["timer"] -= 1
             
             if "image" in hitbox:
