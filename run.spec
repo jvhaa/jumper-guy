@@ -36,3 +36,10 @@ exe = EXE(
     codesign_identity=None,
     entitlements_file=None,
 )
+
+app = BUNDLE(
+    exe,
+    name='dundun master.app',
+    icon=None,
+    bundle_identifier="com.ddc.gg.dundun"
+)
