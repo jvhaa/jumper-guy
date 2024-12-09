@@ -115,7 +115,7 @@ class main:
             self.clock.tick(60)
 
             #delta time cuz i need animations
-            if self.dt > 1000000:
+            if self.dt > 10000000:
                 self.dt = 0 
                 self.counter = 0
                 self.counter_music = 0
