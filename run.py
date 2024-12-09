@@ -117,6 +117,8 @@ class main:
             #delta time cuz i need animations
             if self.dt > 1000000:
                 self.dt = 0 
+                self.counter = 0
+                self.counter_music = 0
             else:
                 self.dt = self.dt + self.clock.get_time()
 
