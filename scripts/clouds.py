@@ -1,6 +1,13 @@
 import pygame
 import random
 
+'''
+    This file is left unused.
+    It is a part of the old version of the game.
+    
+    Cloud renderer
+'''
+
 class cloud:
     def __init__(self, pos, img, speed, depth):
         self.pos = pos

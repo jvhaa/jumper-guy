@@ -1,3 +1,15 @@
+'''
+    items.py 
+
+    Item handler, used for idk handling items lol
+
+    Functions:
+        Item(game, coords, type, size, speed) -> Item
+        update() -> pygame.Rect
+        render(camdiff) -> None
+        touched() -> None
+'''
+
 import pygame
 
 class Item:
@@ -27,12 +39,17 @@ class Item:
 
     
     def render(self, camdiff):
+        # Render the object on the screen
         self.surf.blit(self.img, (self.coords[0]-camdiff[0], self.coords[1]-camdiff[1]))
 
     def touched(self):
+
+        # heal player when touched
         if self.type == "heal":
             self.game.player.hp = min(self.game.player.hp+1, 6)
 
+
+        # load next level when touched
         if self.type == "chest":
             self.game.transiton = True
 

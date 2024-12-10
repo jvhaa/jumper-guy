@@ -1,26 +1,35 @@
+'''
+    entity.py
+
+'''
+
 import pygame
 import random
 
 
 class Physics_Entity:
     def __init__(self, game, e_type, pos, size):
-        self.iframes = 0
-        self.game = game
-        self.type = e_type
-        self.pos = list(pos)
-        self.size = size
-        self.velocity = [0, 0]
+        self.iframes = 0 # invincibility frames
+        self.game = game  # game instance
+        self.type = e_type # entity type
+        self.pos = list(pos) # current position of entity
+        self.size = size # size of entity
+        self.velocity = [0, 0] # speed of entity
         self.collisions = {"up": False, "down": False, "right": False, "left": False}
-        self.stun = 0
-        self.anim_offset = (0, 0)
-        self.ogsize = size
+        self.stun = 0 # stun time
+        self.anim_offset = (0, 0) # animation offset
+        self.ogsize = size 
 
-        self.action = "idle"
-        self.flip = False
+        self.action = "idle" # default action
+        self.flip = False # if looking left or right
         self.animation = self.game.assets[self.type + "/" + "idle"].copy()
         self.last_movement = [0, 0]
 
     def set_action(self, action):
+        '''
+            Set the action of the entity
+            i.e Set player from idle image to run image    
+        '''
         if action != self.action:
             self.action = action
             self.animation = self.game.assets[self.type + "/" + self.action].copy()
@@ -28,14 +37,19 @@ class Physics_Entity:
             self.pos[1] -= self.anim_offset[1]
 
     def rect(self):
+        '''
+            Returns the bounding box of the entity
+        '''
         return pygame.Rect(self.pos[0], self.pos[1], self.size[0], self.size[1])
+
+
 
     def update(self, tilemap, movement=(0, 0)):
         if movement[0] > 0:
-            self.flip = False
+            self.flip = False # if moving right
 
         if movement[0] < 0:
-            self.flip = True
+            self.flip = True # if moving left
 
         if self.size != self.ogsize:
             movement = (
@@ -43,13 +57,20 @@ class Physics_Entity:
                 (self.ogsize[1] - self.size[1] - 0.1),
             )
 
+
+        # reset vertical velocity if colliding with ground or ceiling
         if self.collisions["down"] or self.collisions["up"]:
             self.velocity[1] = 0
+
+        # update the animation & reset the collision
         self.animation.update()
         self.collisions = {"up": False, "down": False, "right": False, "left": False}
 
-        self.pos = [self.pos[0], self.pos[1]]
+        self.pos = [self.pos[0], self.pos[1]] # what?
 
+
+
+        
         self.velocity[1] = min(5, self.velocity[1] + 0.1)
         self.iframes = max(self.iframes - 1, 0)
         if self.velocity[0] > 0:
@@ -64,6 +85,8 @@ class Physics_Entity:
 
         self.pos[0] += frame_movement[0]
         entity_rect = self.rect()
+
+        # check for collision with the tilemap
         for rect in tilemap.physics_rects_around(self.pos):
             if entity_rect.colliderect(rect):
                 if frame_movement[0] > 0:
@@ -78,6 +101,8 @@ class Physics_Entity:
                 self.pos[0] = entity_rect.x
         self.pos[1] += frame_movement[1]
         entity_rect = self.rect()
+
+        # check for collision with the tilemap
         for rect in tilemap.physics_rects_around(self.pos):
             if entity_rect.colliderect(rect):
                 if frame_movement[1] > 0:
@@ -89,6 +114,8 @@ class Physics_Entity:
                 self.pos[1] = entity_rect.y
         self.last_movement = movement
 
+
+    # Render the entity
     def render(self, surf, scroll=(0, 0)):
         surf.blit(
             pygame.transform.flip(self.animation.img(), self.flip, False),
