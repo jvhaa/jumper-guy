@@ -1,3 +1,18 @@
+'''
+Group Members: Sam, Denny, Adam
+Game Name: *Dun Dun Master*
+
+Game Description:
+    Dun Dun maseter is a 2D Platformer/Rougelike
+    The game is a 2D platformer with a rougelike twist, 
+    the player must navigate through the levels, 
+    avoiding enemies and obstacles, while collecting 
+    items to heal and progress through the levels. 
+
+    The game is a rougelike, meaning that if the player dies, they must restart the level. 
+    The game is a 2D platformer, meaning that the player must navigate through the levels using jumping mechanics/parkouring.
+'''
+
 import pygame
 import sys
 import random
@@ -322,7 +337,13 @@ class main:
         '''
         if self.player.hp == 0 or self.player.movement_blocked: # the code to determin what happens when the player dies
             # Rougelike moment, reset the level
-            self.level = 0 
+
+            # if self.level < 4:
+            #     self.level = 0
+            # elif self.level < 8:
+            #     self.level = 4
+            # elif self.level < 12:
+            #     self.level = 8
 
             # Delta time for animation
             if self.counter == 0:

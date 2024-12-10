@@ -40,18 +40,17 @@ class Game:
     
     def run(self):
         while True:
-            if self.tilegroup == 2:
-                self.ongrid = False
             self.scroll[0] += (self.move[1] - self.move[0]) *4
             self.scroll[1] += (self.move[3] - self.move[2]) *4
             render_scroll = (int(self.scroll[0]), int(self.scroll[1]))
             current_tile = self.assets[self.tilelist[self.tilegroup]][self.tilevariant].copy()
-            current_tile.set_alpha(100)
+            current_tile.set_alpha(185)
             mpos = pygame.mouse.get_pos()
             mpos = (mpos[0] /RENDER_SCALE, mpos[1]/RENDER_SCALE)
             tile_pos = int((mpos[0]+self.scroll[0])//self.Tilemap.tilesize), int((mpos[1]+self.scroll[1])//self.Tilemap.tilesize)
             if self.click and self.ongrid:
                 self.Tilemap.tilemap[str(tile_pos[0]) +";" + str(tile_pos[1])] = {"type": self.tilelist[self.tilegroup], 'variant': self.tilevariant, "pos": tile_pos}
+            
             if self.rightclick:
                 tile_loc = str(tile_pos[0]) + ";" + str(tile_pos[1])
                 if tile_loc in self.Tilemap.tilemap:
@@ -84,14 +83,23 @@ class Game:
                         if event.button == 4:
                             self.tilevariant = (self.tilevariant+1) % len(self.assets[self.tilelist[self.tilegroup]])
                         if event.button == 5:
-                            self.tilevariant = (self.tilevariant+1) % len(self.assets[self.tilelist[self.tilegroup]])
+                            self.tilevariant = (self.tilevariant-1) % len(self.assets[self.tilelist[self.tilegroup]])
                     else:
                         if event.button == 4:
                             self.tilevariant = 0
+                            
                             self.tilegroup = (self.tilegroup+1) % len(self.tilelist)
+                            if self.tilegroup == 2:
+                                self.ongrid = False
+                            else:
+                                self.ongrid = True
                         if event.button == 5:
                             self.tilevariant = 0
-                            self.tilegroup = (self.tilegroup+1) % len(self.tilelist)
+                            self.tilegroup = (self.tilegroup-1) % len(self.tilelist)
+                            if self.tilegroup == 2:
+                                self.ongrid = False
+                            else:
+                                self.ongrid = True
                 if event.type == pygame.MOUSEBUTTONUP:
                     if event.button == 1:
                         self.click = False

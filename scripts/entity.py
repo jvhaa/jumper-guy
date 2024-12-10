@@ -178,6 +178,7 @@ class player(Physics_Entity):
         super().render(surf, scroll)
 
     def jump(self):
+
         if self.wall_slide:
             if not self.flip and self.last_movement[0] < 0:
                 self.velocity[0] = 3.5
